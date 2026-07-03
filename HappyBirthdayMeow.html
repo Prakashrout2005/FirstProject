@@ -1,0 +1,431 @@
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  background: #130818;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  overflow-x: hidden;
+}
+
+.bg-canvas {
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse at 20% 15%, #3d1a2e 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 85%, #1a2a3d 0%, transparent 55%),
+    radial-gradient(ellipse at 65% 5%,  #2e1a3d 0%, transparent 45%),
+    linear-gradient(160deg, #130818 0%, #0d1520 50%, #18090d 100%);
+}
+
+.blob {
+  position: fixed; border-radius: 50%;
+  filter: blur(72px); pointer-events: none; z-index: 1;
+  animation: blobPulse ease-in-out infinite alternate;
+}
+@keyframes blobPulse {
+  from { opacity: 0.16; transform: scale(1) translate(0,0); }
+  to   { opacity: 0.26; transform: scale(1.1) translate(var(--dx,8px),var(--dy,8px)); }
+}
+
+.rain-layer { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+.drop { position: absolute; top: -50px; animation: dropFall linear infinite; opacity: 0; }
+@keyframes dropFall {
+  0%   { transform: translateY(-50px) rotate(0deg); opacity: 0; }
+  10%  { opacity: 0.8; }
+  90%  { opacity: 0.65; }
+  100% { transform: translateY(108vh) rotate(25deg); opacity: 0; }
+}
+
+.bf-layer { position: fixed; inset: 0; z-index: 3; pointer-events: none; }
+.bf { position: absolute; font-size: 18px; opacity: 0.7; animation: bfGlide ease-in-out infinite; }
+@keyframes bfGlide {
+  0%   { transform: translate(0,0) scaleX(1); }
+  30%  { transform: translate(50px,-45px) scaleX(-1); }
+  60%  { transform: translate(18px,-90px) scaleX(1); }
+  80%  { transform: translate(-35px,-48px) scaleX(-1); }
+  100% { transform: translate(0,0) scaleX(1); }
+}
+
+.star-layer { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
+.star { position: absolute; animation: starTwinkle ease-in-out infinite alternate; }
+@keyframes starTwinkle {
+  from { opacity: 0.08; transform: scale(0.6); }
+  to   { opacity: 0.55; transform: scale(1.2); }
+}
+
+.container {
+  position: relative; z-index: 10;
+  width: 100%; max-width: 420px;
+}
+
+.border-ring {
+  position: absolute; inset: -2px; border-radius: 28px; z-index: -1;
+  background: linear-gradient(135deg, #c9748f, #8b7fb8, #7fa8c9, #c9748f);
+  background-size: 250%;
+  animation: borderSpin 6s linear infinite;
+  opacity: 0.65;
+}
+@keyframes borderSpin {
+  0%   { background-position: 0%; }
+  100% { background-position: 250%; }
+}
+
+.card {
+  background: rgba(14, 6, 20, 0.92);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  border: 1px solid rgba(201,116,143,0.2);
+  border-radius: 26px;
+  padding: 2.2rem 1.6rem 2rem;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute; top: 0; left: 15%; right: 15%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201,116,143,0.55), rgba(139,127,184,0.55), transparent);
+}
+
+.shimmer {
+  position: absolute; inset: 0; pointer-events: none; border-radius: 26px;
+  background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,0.03) 50%, transparent 65%);
+  background-size: 200%;
+  animation: shimSweep 5s ease infinite;
+}
+@keyframes shimSweep {
+  0%   { background-position: -100%; }
+  100% { background-position: 200%; }
+}
+
+.cake-wrap { position: relative; display: inline-block; margin-bottom: 0.5rem; }
+.cake { font-size: 54px; display: block; animation: cakeFloat 2s ease-in-out infinite; }
+@keyframes cakeFloat {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-9px); }
+}
+.cake-glow {
+  position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+  width: 54px; height: 12px;
+  background: radial-gradient(ellipse, rgba(201,116,143,0.4), transparent 70%);
+  filter: blur(4px);
+}
+
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(201,116,143,0.1);
+  border: 1px solid rgba(201,116,143,0.28);
+  color: #e8a0b4;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.7px;
+  padding: 5px 14px; border-radius: 999px;
+  margin-bottom: 1.2rem;
+}
+
+.hey-line { font-size: 13px; color: #8878a8; margin-bottom: 0.2rem; letter-spacing: 0.3px; }
+h1 { font-size: 24px; font-weight: 500; line-height: 1.35; margin-bottom: 0.2rem; color: #f0dde6; text-shadow: 0 0 28px rgba(201,116,143,0.3); }
+.aka { font-size: 12.5px; color: rgba(201,116,143,0.6); margin-bottom: 1.3rem; }
+
+.welcome-block {
+  background: rgba(201,116,143,0.05);
+  border: 1px solid rgba(201,116,143,0.1);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.6rem;
+  text-align: left;
+}
+.wl { font-size: 13.5px; line-height: 1.95; color: #c0b0d0; }
+.wl .soft { color: #8878a8; font-size: 13px; }
+.wl .pill {
+  display: inline-block;
+  background: rgba(201,116,143,0.14);
+  color: #e8a0b4;
+  font-size: 11.5px; font-weight: 500;
+  padding: 2px 10px; border-radius: 999px; margin-left: 4px;
+  vertical-align: middle;
+}
+
+.btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 0.5rem; }
+.drop-btn {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 11px 22px;
+  font-size: 13px; font-weight: 500;
+  border: none; outline: none; cursor: pointer;
+  border-radius: 50% 50% 50% 50% / 55% 55% 45% 45%;
+  backdrop-filter: blur(18px);
+  color: rgba(255,255,255,0.92);
+  border-top: 1px solid rgba(255,255,255,0.32);
+  border-left: 1px solid rgba(255,255,255,0.12);
+  border-right: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 4px 18px rgba(0,0,0,0.4);
+  transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+  overflow: hidden;
+}
+.drop-btn::before {
+  content: '';
+  position: absolute; top: 4px; left: 20%; width: 58%; height: 30%;
+  background: rgba(255,255,255,0.16); border-radius: 50%; filter: blur(3px); pointer-events: none;
+}
+.drop-btn:hover { transform: translateY(-3px) scale(1.05); }
+.drop-btn:active { transform: scale(0.96); }
+.drop-btn:disabled { opacity: 0.3; cursor: default; transform: none; }
+.drop-rose   { background: rgba(201,116,143,0.22); border-top-color: rgba(230,160,180,0.48); color: #f0c0d0; }
+.drop-violet { background: rgba(139,127,184,0.22); border-top-color: rgba(180,170,220,0.48); color: #d8d0f0; }
+
+.section { display: none; text-align: left; margin-top: 1.4rem; padding-top: 1.4rem; border-top: 1px solid rgba(255,255,255,0.06); animation: secIn 0.5s ease; }
+.section.on { display: block; }
+@keyframes secIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.sec-label { font-size: 10.5px; font-weight: 500; color: rgba(201,116,143,0.65); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 1rem; }
+
+.rel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+.rel-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid rgba(255,255,255,0.13);
+  border-radius: 12px; padding: 12px;
+  transition: transform 0.2s, background 0.2s;
+}
+.rel-card:hover { transform: translateY(-2px); background: rgba(201,116,143,0.07); }
+.rel-card .lbl { font-size: 9.5px; color: rgba(255,255,255,0.3); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 4px; }
+.rel-card .val { font-size: 13px; font-weight: 500; color: #e8d0dc; }
+
+.quote {
+  background: rgba(201,116,143,0.05);
+  border-left: 2px solid rgba(201,116,143,0.4);
+  border-radius: 0 11px 11px 0;
+  padding: 11px 14px;
+  font-size: 13px; color: #b0a0c0; line-height: 1.9; font-style: italic;
+}
+
+/* About — direct letter style */
+.about-box {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-top: 1px solid rgba(255,255,255,0.13);
+  border-radius: 14px;
+  padding: 1.2rem 1.1rem;
+  text-align: left;
+}
+
+.letter-line {
+  font-size: 13.5px;
+  color: #c8b5d8;
+  line-height: 2.05;
+  margin-bottom: 0.9rem;
+}
+.letter-line:last-child { margin-bottom: 0; }
+
+.letter-line .hl { color: #e8a0b4; font-weight: 500; }
+.letter-line .soft { color: #8878a8; font-size: 13px; }
+
+.letter-sign {
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 12.5px;
+  color: rgba(201,116,143,0.7);
+  font-style: italic;
+  text-align: right;
+}
+
+.conf { position: fixed; pointer-events: none; z-index: 999; border-radius: 2px; animation: cFall ease-out forwards; }
+@keyframes cFall {
+  from { transform: translate(0,0) rotate(0deg); opacity: 1; }
+  to   { transform: translate(var(--tx),var(--ty)) rotate(var(--r)); opacity: 0; }
+}
+</style>
+
+<div class="bg-canvas"></div>
+<div id="blobs"></div>
+<div class="rain-layer" id="rainLayer"></div>
+<div class="star-layer" id="starLayer"></div>
+<div class="bf-layer"   id="bfLayer"></div>
+
+<div class="container">
+  <div style="position:relative;">
+    <div class="border-ring"></div>
+    <div class="card">
+      <div class="shimmer"></div>
+
+      <div class="cake-wrap">
+        <span class="cake">&#127874;</span>
+        <div class="cake-glow"></div>
+      </div>
+
+      <div class="badge">July 12 &nbsp;&#183;&nbsp; Your Special Day</div>
+
+      <p class="hey-line">hey hey hey &mdash;</p>
+      <h1>Allyousha! &#127881;</h1>
+      <p class="aka">( yes you, Meow &#128062; )</p>
+
+      <div class="welcome-block">
+        <p class="wl">
+          So it&rsquo;s your birthday, huh? &#127867;<br>
+          <span class="soft">No escaping it this time &mdash;</span><br>
+          you&rsquo;re officially being celebrated<br>
+          whether you like it or not. &#128149;
+        </p>
+        <p class="wl" style="margin-top:0.65rem;">
+          Made this just for you, Meow.
+          <span class="pill">with love &#127800;</span>
+        </p>
+      </div>
+
+      <div class="btn-row">
+        <button class="drop-btn drop-rose" id="btnRel" onclick="showRel()">&#128149; Our Relationship</button>
+      </div>
+      <div class="btn-row" id="row2" style="display:none;">
+        <button class="drop-btn drop-violet" id="btnAbout" onclick="showAbout()">&#127800; About You, Meow</button>
+      </div>
+
+      <!-- Relation -->
+      <div class="section" id="relSec">
+        <p class="sec-label">Our Special Bond</p>
+        <div class="rel-grid">
+          <div class="rel-card"><div class="lbl">She is</div><div class="val">My Meow &#128062;</div></div>
+          <div class="rel-card"><div class="lbl">I am</div><div class="val">Her 1st love &#128153;</div></div>
+          <div class="rel-card"><div class="lbl">Together</div><div class="val">1st year &#127769;</div></div>
+          <div class="rel-card"><div class="lbl">Distance</div><div class="val">Far but close &#128149;</div></div>
+        </div>
+        <div class="quote">
+          "This is our first year together &mdash; and her first birthday with me by her side, even if only from a distance. I haven&rsquo;t met her in person yet, but I&rsquo;ve seen her. And honestly? She&rsquo;s even more beautiful than I imagined. &#127800;<br><br>
+          She takes care of her family and still finds a way to give me her heart every single day. That&rsquo;s not small. That&rsquo;s everything. &#128153;<br><br>
+          I&rsquo;m proud to be her first love. And I pray we never have to be apart."
+        </div>
+      </div>
+
+      <!-- About — direct to her -->
+      <div class="section" id="aboutSec">
+        <p class="sec-label">For You, Allyousha</p>
+        <div class="about-box">
+
+          <p class="letter-line">
+            Allyousha &mdash; <span class="hl">I don&rsquo;t even know where to start.</span>
+          </p>
+
+          <p class="letter-line">
+            You are the <span class="hl">quietest, most gentle person</span> I have ever come across. The way you treat everyone around you &mdash; with so much warmth, like everyone matters to you &mdash; that&rsquo;s something not everyone has. <span class="soft">And you don&rsquo;t even realize how rare you are.</span>
+          </p>
+
+          <p class="letter-line">
+            I have seen you from a distance. And trust me &mdash; <span class="hl">you are even more beautiful than I ever imagined.</span> Not just the way you look, but the way you carry yourself. So calm. So real.
+          </p>
+
+          <p class="letter-line">
+            You manage your family, your life &mdash; and still, you find time for me. Online, every single day. <span class="hl">That means more to me than you know.</span> Most people wouldn&rsquo;t do that. But you do. And I see it.
+          </p>
+
+          <p class="letter-line">
+            Your heart is so soft, Meow. <span class="hl">Even small things make you emotional.</span> And honestly? I never want anyone to say anything that makes those eyes fill up. You deserve only kindness. Always.
+          </p>
+
+          <p class="letter-line">
+            This is our <span class="hl">first year together</span> &mdash; and this is your first birthday as my Meow. I feel so lucky. Lucky that out of everyone, <span class="hl">you chose me.</span> That you let me be your first love.
+          </p>
+
+          <p class="letter-line">
+            I pray every day that we never have to be apart. <span class="hl">I want to be there for every birthday after this &mdash; closer, together, in person.</span>
+          </p>
+
+          <p class="letter-line">
+            Happy Birthday, Allyousha. &#127874;<br>
+            <span class="hl">You are loved. More than words. More than you think. &#128062;&#10084;</span>
+          </p>
+
+          <div class="letter-sign">
+            &mdash; yours, always &#127800;
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const blobData = [
+  {w:340,h:300,top:'0%',left:'-8%',bg:'#7a2a4a',dx:'18px',dy:'16px',dur:12},
+  {w:280,h:280,top:'8%',right:'-8%',bg:'#3a2a6a',dx:'-16px',dy:'22px',dur:14},
+  {w:320,h:260,top:'55%',left:'45%',bg:'#1a3a5a',dx:'14px',dy:'-18px',dur:11},
+  {w:260,h:240,top:'62%',left:'-10%',bg:'#5a2a5a',dx:'20px',dy:'-14px',dur:13},
+];
+const bc = document.getElementById('blobs');
+blobData.forEach(b => {
+  const el = document.createElement('div');
+  el.className = 'blob';
+  el.style.cssText = `position:fixed;width:${b.w}px;height:${b.h}px;top:${b.top};left:${b.left||'auto'};right:${b.right||'auto'};background:${b.bg};--dx:${b.dx};--dy:${b.dy};animation-duration:${b.dur}s;z-index:1;filter:blur(72px);border-radius:50%;pointer-events:none;`;
+  bc.appendChild(el);
+});
+
+const rainEl = document.getElementById('rainLayer');
+const drops = ['\u{1F338}','\u{1F495}','\u2728','\u{1F337}','\u{1F497}','\u{1F339}','\u{1FA77}','\u{1F4AB}','\u{1F49D}'];
+for (let i = 0; i < 26; i++) {
+  const d = document.createElement('div');
+  d.className = 'drop';
+  d.textContent = drops[Math.floor(Math.random()*drops.length)];
+  d.style.left = Math.random()*100+'%';
+  d.style.fontSize = (10+Math.random()*9)+'px';
+  d.style.animationDuration = (6+Math.random()*8)+'s';
+  d.style.animationDelay = (Math.random()*10)+'s';
+  rainEl.appendChild(d);
+}
+
+const starEl = document.getElementById('starLayer');
+for (let i = 0; i < 22; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  s.textContent = i%2===0 ? '\u2022' : '\u00B7';
+  s.style.cssText = `position:absolute;top:${Math.random()*96}%;left:${Math.random()*96}%;color:rgba(220,190,210,0.55);font-size:${6+Math.random()*10}px;animation-duration:${2+Math.random()*3}s;animation-delay:${Math.random()*4}s;`;
+  starEl.appendChild(s);
+}
+
+const bfEl = document.getElementById('bfLayer');
+[{t:'8%',l:'4%',dur:9,delay:0},{t:'16%',l:'78%',dur:12,delay:2},{t:'58%',l:'2%',dur:10,delay:1.5},{t:'70%',l:'80%',dur:11,delay:3.5}].forEach(p => {
+  const b = document.createElement('div');
+  b.className = 'bf';
+  b.textContent = '\u{1F98B}';
+  b.style.cssText = `top:${p.t};left:${p.l};animation-duration:${p.dur}s;animation-delay:${p.delay}s;`;
+  bfEl.appendChild(b);
+});
+
+function confetti() {
+  const cols = ['#c9748f','#8b7fb8','#7fa8c9','#e8a0b4','#b8b0d8','rgba(255,255,255,0.55)'];
+  const cx = window.innerWidth/2, cy = window.innerHeight/2;
+  for (let i = 0; i < 30; i++) {
+    const c = document.createElement('div');
+    c.className = 'conf';
+    const angle = Math.random()*360, dist = 80+Math.random()*150;
+    c.style.setProperty('--tx', Math.cos(angle*Math.PI/180)*dist+'px');
+    c.style.setProperty('--ty', Math.sin(angle*Math.PI/180)*dist+'px');
+    c.style.setProperty('--r', (Math.random()*600-300)+'deg');
+    c.style.cssText += `background:${cols[Math.floor(Math.random()*cols.length)]};width:${5+Math.random()*5}px;height:${5+Math.random()*5}px;left:${cx}px;top:${cy}px;animation-duration:${0.7+Math.random()*0.6}s;animation-delay:${Math.random()*0.2}s;`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),1500);
+  }
+}
+
+function showRel() {
+  document.getElementById('relSec').classList.add('on');
+  document.getElementById('row2').style.display = 'flex';
+  document.getElementById('btnRel').disabled = true;
+  confetti();
+  setTimeout(()=>document.getElementById('relSec').scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+}
+function showAbout() {
+  document.getElementById('aboutSec').classList.add('on');
+  document.getElementById('btnAbout').disabled = true;
+  confetti();
+  setTimeout(()=>document.getElementById('aboutSec').scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+}
+</script>
